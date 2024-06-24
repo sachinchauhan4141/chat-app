@@ -14,6 +14,7 @@ import {
 import { db } from "../config/firebase";
 import { useChatStore } from "../config/chatStore";
 import upload from "../config/upload";
+import { toast } from "react-toastify";
 
 const Chat = () => {
   const endRef = useRef(null);
@@ -91,7 +92,7 @@ const Chat = () => {
       setText("");
     } catch (error) {
       console.log(error);
-      alert(error.message);
+      toast.error(error.message);
     }
   };
 
@@ -105,7 +106,7 @@ const Chat = () => {
       toggleBlock();
     } catch (error) {
       console.log(error);
-      alert(error.message);
+      toast.error(error.message);
     }
   };
 
@@ -122,13 +123,13 @@ const Chat = () => {
         url: URL.createObjectURL(file),
       });
       setText(() => " ");
-      alert(file.name, " added successfully");
+      toast.success(file.name, " added successfully");
     } else {
       setImage({
         file: null,
         url: "",
       });
-      alert("try again using image file");
+      toast.warning("try again using image file");
     }
   };
 
@@ -154,7 +155,7 @@ const Chat = () => {
           </div>
           <div>
             <button onClick={handleBlock} className="px-2">
-              <span class="material-symbols-outlined">
+              <span className="material-symbols-outlined">
                 {isCurrentUserBlocked
                   ? "warning"
                   : isReceiverBlocked

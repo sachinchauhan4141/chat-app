@@ -12,9 +12,11 @@ import {
 } from "firebase/firestore";
 import { auth, db } from "../config/firebase";
 import { useUserStore } from "../config/userStore";
-import { Link } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
+import { toast } from "react-toastify";
 
 const AddChat = () => {
+  const navigate = useNavigate();
   const { currentUser } = useUserStore();
   const [user, setUser] = useState(null);
 
@@ -28,18 +30,22 @@ const AddChat = () => {
       const querySnapShot = await getDocs(q);
       if (!querySnapShot.empty) {
         setUser(querySnapShot.docs[0].data());
+      } else {
+        toast.error(username + " not found");
       }
     } catch (error) {
       console.log(error);
-      alert(error?.message);
+      toast.error(error?.message);
     }
   };
 
   const handleAdd = async () => {
     if (currentUser?.username === user?.username) {
-      alert("You cant add yourself...");
+      toast.error("You cant add yourself...");
       return;
     }
+
+    toast.warning("adding user please wait");
 
     const chatRef = collection(db, "chats");
     const userChatsRef = collection(db, "userchats");
@@ -67,10 +73,17 @@ const AddChat = () => {
           updatedAt: Date.now(),
         }),
       });
+      toast.success("user added successfully");
+      navigate("/");
     } catch (error) {
       console.log(error);
-      alert(error?.message);
+      toast.error(error?.message);
     }
+  };
+
+  const handleSignOut = () => {
+    toast.warning("signed out...");
+    auth.signOut();
   };
 
   return (
@@ -89,7 +102,7 @@ const AddChat = () => {
             </div>
           </div>
           <div>
-            <Link to={"/"} onClick={() => auth.signOut()}>
+            <Link to={"/"} onClick={handleSignOut}>
               <span className="material-symbols-outlined">logout</span>
             </Link>
           </div>
@@ -114,9 +127,7 @@ const AddChat = () => {
                 <div className="ml-4 flex-1 border-b border-grey-lighter py-4">
                   <p className="text-grey-darkest text-lg">{user?.username}</p>
                 </div>
-                <span className="material-symbols-outlined">
-person_add
-</span>
+                <span className="material-symbols-outlined">person_add</span>
               </div>
             </div>
           </div>

@@ -4,6 +4,7 @@ import { auth, db } from "../config/firebase";
 import { useUserStore } from "../config/userStore";
 import { doc, getDoc, onSnapshot, updateDoc } from "firebase/firestore";
 import { useChatStore } from "../config/chatStore";
+import { toast } from "react-toastify";
 
 const ChatContainer = () => {
   const navigate = useNavigate();
@@ -55,13 +56,18 @@ const ChatContainer = () => {
       navigate("/chat/" + chat?.user?.id);
     } catch (error) {
       console.log(error);
-      alert(error.message);
+      toast.error(error.message);
     }
   };
 
   const filteredChats = chats.filter((chat) =>
     chat.user.username.toLowerCase().includes(search.toLowerCase())
   );
+
+  const handleSignOut = () => {
+    toast.warning("signed out...");
+    auth.signOut();
+  };
 
   return (
     <div className="h-screen overflow-hidden flex justify-center">
@@ -72,15 +78,11 @@ const ChatContainer = () => {
             <img className="w-10 h-10 rounded-full" src={currentUser?.avatar} />
             <p className="text-lg">{currentUser?.username}</p>
           </div>
-          <div>
-            <p className="text-2xl">ChatNoW</p>
-          </div>
-          <div></div>
           <div className="flex gap-2">
             <Link to={"/addchat"}>
               <span className="material-symbols-outlined">add</span>
             </Link>
-            <button onClick={() => auth.signOut()}>
+            <button onClick={handleSignOut}>
               <span className="material-symbols-outlined">logout</span>
             </button>
           </div>

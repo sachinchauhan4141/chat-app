@@ -6,6 +6,7 @@ import { auth, db } from "../config/firebase";
 import { doc, setDoc } from "firebase/firestore";
 import { useState } from "react";
 import upload from "../config/upload";
+import { toast } from "react-toastify";
 
 const AuthPage = () => {
   const [signUpPage, setSignUpPage] = useState(false);
@@ -27,6 +28,7 @@ const AuthPage = () => {
 
   const handleSignUp = async (e) => {
     e.preventDefault();
+    toast.warning("plzz wait,we are signing you up");
     const formData = new FormData(e.target);
     const { username, email, password } = Object.fromEntries(formData);
     try {
@@ -45,25 +47,25 @@ const AuthPage = () => {
       await setDoc(doc(db, "userchats", res?.user?.uid), {
         chats: [],
       });
-
-      // alert("account created successfully");
+      toast.success("account created successfully");
     } catch (error) {
       console.log(error);
-      alert(error?.message);
+      toast.error(error?.message);
     }
   };
 
   const handleLogin = async (e) => {
     e.preventDefault();
+    toast.warning("plzz wait,we are signing you in");
     const formData = new FormData(e.target);
     const { email, password } = Object.fromEntries(formData);
 
     try {
-      const res = await signInWithEmailAndPassword(auth, email, password);
-      // alert("loggedin successfully");
+      await signInWithEmailAndPassword(auth, email, password);
+      toast.success("signedin successfully");
     } catch (error) {
       console.log(error);
-      alert(error?.message);
+      toast.error(error?.message);
     }
   };
 

@@ -5,19 +5,35 @@ import { RouterProvider, createBrowserRouter } from "react-router-dom";
 import ChatScreen from "./components/ChatScreen.jsx";
 import App from "./components/App.jsx";
 import AddChat from "./components/AddChat.jsx";
+import Notification from "./components/Notification.jsx";
 
 const router = createBrowserRouter([
   {
     path: "/",
-    element: <App />,
+    element: (
+      <>
+        <App />
+        <Notification />
+      </>
+    ),
   },
   {
     path: "/chat/:id",
-    element: <ChatScreen />,
+    element: (
+      <>
+        <ChatScreen />
+        <Notification />
+      </>
+    ),
   },
   {
     path: "/addchat",
-    element: <AddChat />,
+    element: (
+      <>
+        <AddChat />
+        <Notification />
+      </>
+    ),
   },
 ]);
 
