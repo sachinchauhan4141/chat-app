@@ -26,11 +26,11 @@ const ChatContainer = () => {
           return { ...item, user };
         });
         const chatData = await Promise.all(promises);
-        setChats(
-          chatData.sort((a, b) => {
-            return b?.updatedAt - a?.updatedAt;
-          })
-        );
+        const sortedChats = chatData.sort((a, b) => {
+          return b?.updatedAt - a?.updatedAt;
+        });
+        setChats(sortedChats);
+        localStorage.setItem("chats", JSON.stringify(sortedChats));
       }
     );
     return () => {

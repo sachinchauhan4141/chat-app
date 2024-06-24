@@ -17,6 +17,9 @@ import { toast } from "react-toastify";
 
 const AddChat = () => {
   const navigate = useNavigate();
+  const [chats] = useState(
+    JSON.parse(localStorage.getItem("users") || "[]")
+  );
   const { currentUser } = useUserStore();
   const [user, setUser] = useState(null);
 
@@ -44,9 +47,14 @@ const AddChat = () => {
       toast.error("You cant add yourself...");
       return;
     }
-
+    const alreadyExists = chats.filter(
+      (chat) => chat.user.username === user?.username
+    );
+    if (alreadyExists[0]) {
+      toast.error("User already exists");
+      return;
+    }
     toast.warning("adding user please wait");
-
     const chatRef = collection(db, "chats");
     const userChatsRef = collection(db, "userchats");
     try {
