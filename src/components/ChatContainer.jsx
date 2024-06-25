@@ -53,7 +53,7 @@ const ChatContainer = () => {
         chats: userChats,
       });
       changeChat(chat.chatId, chat.user);
-      navigate("/chat/" + chat?.user?.id);
+      navigate("/chat/" + chat?.chatId);
     } catch (error) {
       console.log(error);
       toast.error(error.message);
@@ -66,6 +66,8 @@ const ChatContainer = () => {
 
   const handleSignOut = () => {
     toast.warning("signed out...");
+    localStorage.removeItem("currentuser");
+    localStorage.removeItem("chats");
     auth.signOut();
   };
 

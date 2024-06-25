@@ -37,7 +37,7 @@ const AuthPage = () => {
       const imgUrl = await upload(avatar.file);
 
       await setDoc(doc(db, "users", res?.user?.uid), {
-        username,
+        username: username.trim(),
         email,
         avatar: imgUrl,
         id: res?.user?.uid,
@@ -113,7 +113,7 @@ const AuthPage = () => {
                       name="username"
                       id="username"
                       className="bg-gray-50 border border-gray-300 text-gray-900 rounded-lg focus:ring-primary-600 focus:border-primary-600 block w-full p-2.5"
-                      placeholder="example@example.com"
+                      placeholder="Username"
                       required={true}
                     />
                   </div>

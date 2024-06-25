@@ -1,6 +1,6 @@
 import React, { useEffect, useRef, useState } from "react";
 import Message from "./Cards/Message";
-import { Link } from "react-router-dom";
+import { Link, useParams } from "react-router-dom";
 import { useUserStore } from "../config/userStore";
 import EmojiPicker from "emoji-picker-react";
 import {
@@ -17,12 +17,17 @@ import upload from "../config/upload";
 import { toast } from "react-toastify";
 
 const Chat = () => {
+  const { id: chatIdParam } = useParams();
   const endRef = useRef(null);
+  const [localStorageId] = useState(
+    JSON.parse(localStorage.getItem("currentuser"))?.id
+  );
+  const [recieverId] = useState(localStorage.getItem("recieverId"));
   const [open, setOpen] = useState(false);
   const { currentUser } = useUserStore();
   const { chatId, user, isCurrentUserBlocked, isReceiverBlocked, toggleBlock } =
     useChatStore();
-  const [chat, setChat] = useState(null);
+  const [chat, setChat] = useState([]);
   const [text, setText] = useState("");
 
   const [image, setImage] = useState({
@@ -35,17 +40,16 @@ const Chat = () => {
   }, [chat]);
 
   useEffect(() => {
-    const unSub = onSnapshot(doc(db, "chats", chatId), (res) => {
+    const unSub = onSnapshot(doc(db, "chats", chatIdParam || chatId), (res) => {
       setChat(res.data());
     });
     return () => {
       unSub();
     };
-  }, [chatId, toggleBlock]);
+  }, [chatId, toggleBlock, chatIdParam]);
 
   const handleSend = async () => {
     if (text === "") return;
-
     let imgUrl = null;
 
     try {
@@ -53,16 +57,20 @@ const Chat = () => {
         imgUrl = await upload(image?.file);
       }
 
-      await updateDoc(doc(db, "chats", chatId), {
+      await updateDoc(doc(db, "chats", chatId || chatIdParam), {
         messages: arrayUnion({
-          senderId: currentUser?.id,
+          senderId: currentUser?.id || localStorageId,
           text,
           createdAt: new Date(),
           ...(imgUrl && { img: imgUrl }),
         }),
       });
 
-      const userIds = [currentUser?.id, user?.id];
+      console.log("hii");
+      const userIds = [
+        currentUser?.id || localStorageId,
+        user?.id || recieverId,
+      ];
 
       userIds.forEach(async (userId) => {
         const userChatsRef = doc(db, "userchats", userId);
@@ -77,7 +85,7 @@ const Chat = () => {
 
           userChatsData.chats[chatIndex].lastMessage = text;
           userChatsData.chats[chatIndex].isSeen =
-            chatId === currentUser.id ? true : false;
+            chatId === (currentUser.id || localStorageId) ? true : false;
           userChatsData.chats[chatIndex].updatedAt = Date.now();
 
           await updateDoc(userChatsRef, {
@@ -97,11 +105,13 @@ const Chat = () => {
   };
 
   const handleBlock = async () => {
-    if (!user) return;
-    const userDocRef = doc(db, "users", currentUser?.id);
+    if (!user || !recieverId) return;
+    const userDocRef = doc(db, "users", currentUser?.id || localStorageId);
     try {
       await updateDoc(userDocRef, {
-        blocked: isReceiverBlocked ? arrayRemove(user.id) : arrayUnion(user.id),
+        blocked: isReceiverBlocked
+          ? arrayRemove(user.id || recieverId)
+          : arrayUnion(user.id || recieverId),
       });
       toggleBlock();
     } catch (error) {
@@ -183,6 +193,9 @@ const Chat = () => {
               </div>
             </div>
             {chat?.messages?.map((message) => {
+              if (message?.senderId !== (currentUser?.id || localStorageId)) {
+                localStorage.setItem("recieverId", message.senderId);
+              }
               return (
                 <Message
                   key={message?.createdAt}
@@ -190,7 +203,8 @@ const Chat = () => {
                     img: message?.img,
                     text: message?.text,
                     time: message?.createdAt.toDate(),
-                    mine: message?.senderId === currentUser?.id,
+                    mine:
+                      message?.senderId === (currentUser?.id || localStorageId),
                   }}
                 />
               );

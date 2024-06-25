@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from "react";
+import React, { useState } from "react";
 import {
   arrayUnion,
   collection,
@@ -17,9 +17,7 @@ import { toast } from "react-toastify";
 
 const AddChat = () => {
   const navigate = useNavigate();
-  const [chats] = useState(
-    JSON.parse(localStorage.getItem("users") || "[]")
-  );
+  const [chats] = useState(JSON.parse(localStorage.getItem("chats") || "[]"));
   const { currentUser } = useUserStore();
   const [user, setUser] = useState(null);
 
@@ -47,11 +45,11 @@ const AddChat = () => {
       toast.error("You cant add yourself...");
       return;
     }
-    const alreadyExists = chats.filter(
-      (chat) => chat.user.username === user?.username
-    );
-    if (alreadyExists[0]) {
-      toast.error("User already exists");
+    const alreadyExists = chats.find((chat) => {
+      return chat.user.username === user?.username;
+    });
+    if (alreadyExists) {
+      toast.error("User chat already exists");
       return;
     }
     toast.warning("adding user please wait");
@@ -91,6 +89,8 @@ const AddChat = () => {
 
   const handleSignOut = () => {
     toast.warning("signed out...");
+    localStorage.removeItem("currentuser");
+    localStorage.removeItem("chats");
     auth.signOut();
   };
 
