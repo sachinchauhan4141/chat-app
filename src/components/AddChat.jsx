@@ -17,7 +17,7 @@ import { toast } from "react-toastify";
 
 const AddChat = () => {
   const navigate = useNavigate();
-  const [chats] = useState(JSON.parse(localStorage.getItem("chats") || "[]"));
+  const [chats] = useState([]);
   const { currentUser } = useUserStore();
   const [user, setUser] = useState(null);
 
@@ -89,8 +89,6 @@ const AddChat = () => {
 
   const handleSignOut = () => {
     toast.warning("signed out...");
-    localStorage.removeItem("currentuser");
-    localStorage.removeItem("chats");
     auth.signOut();
   };
 

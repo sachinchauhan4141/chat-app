@@ -106,7 +106,7 @@ const AuthPage = () => {
                       htmlFor="username"
                       className="block mb-2 text-sm font-medium text-gray-900 "
                     >
-                      Username
+                      your unique username
                     </label>
                     <input
                       type="text"

@@ -8,10 +8,10 @@ import { toast } from "react-toastify";
 
 const ChatContainer = () => {
   const navigate = useNavigate();
-  const { currentUser } = useUserStore();
   const [chats, setChats] = useState([]);
   const [search, setSearch] = useState("");
 
+  const { currentUser } = useUserStore();
   const { changeChat } = useChatStore();
 
   useEffect(() => {
@@ -30,7 +30,6 @@ const ChatContainer = () => {
           return b?.updatedAt - a?.updatedAt;
         });
         setChats(sortedChats);
-        localStorage.setItem("chats", JSON.stringify(sortedChats));
       }
     );
     return () => {
@@ -66,8 +65,6 @@ const ChatContainer = () => {
 
   const handleSignOut = () => {
     toast.warning("signed out...");
-    localStorage.removeItem("currentuser");
-    localStorage.removeItem("chats");
     auth.signOut();
   };
 

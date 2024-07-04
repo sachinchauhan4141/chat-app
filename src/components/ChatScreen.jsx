@@ -19,28 +19,29 @@ import { toast } from "react-toastify";
 const Chat = () => {
   const { id: chatIdParam } = useParams();
   const endRef = useRef(null);
-  const [localStorageId] = useState(
-    JSON.parse(localStorage.getItem("currentuser"))?.id
-  );
-  const [recieverId] = useState(localStorage.getItem("recieverId"));
-  const [open, setOpen] = useState(false);
-  const { currentUser } = useUserStore();
-  const { chatId, user, isCurrentUserBlocked, isReceiverBlocked, toggleBlock } =
-    useChatStore();
-  const [chat, setChat] = useState([]);
-  const [text, setText] = useState("");
 
+  const [open, setOpen] = useState(false);
+  const [text, setText] = useState("");
+  const [chat, setChat] = useState([]);
   const [image, setImage] = useState({
     file: null,
     url: "",
   });
+
+  const { currentUser } = useUserStore();
+  const { chatId, user, isCurrentUserBlocked, isReceiverBlocked, toggleBlock } =
+    useChatStore();
 
   useEffect(() => {
     endRef.current?.scrollIntoView({ behaviour: "smooth" });
   }, [chat]);
 
   useEffect(() => {
+    console.log("currentUser ", currentUser);
+    console.log("chatId ", chatId);
+    console.log("user ", user);
     const unSub = onSnapshot(doc(db, "chats", chatIdParam || chatId), (res) => {
+      console.log("user from chat ", res.data()?.messages[0]?.senderId);
       setChat(res.data());
     });
     return () => {
@@ -59,7 +60,7 @@ const Chat = () => {
 
       await updateDoc(doc(db, "chats", chatId || chatIdParam), {
         messages: arrayUnion({
-          senderId: currentUser?.id || localStorageId,
+          senderId: currentUser?.id,
           text,
           createdAt: new Date(),
           ...(imgUrl && { img: imgUrl }),
@@ -67,10 +68,7 @@ const Chat = () => {
       });
 
       console.log("hii");
-      const userIds = [
-        currentUser?.id || localStorageId,
-        user?.id || recieverId,
-      ];
+      const userIds = [currentUser?.id, user?.id];
 
       userIds.forEach(async (userId) => {
         const userChatsRef = doc(db, "userchats", userId);
@@ -80,12 +78,12 @@ const Chat = () => {
           const userChatsData = userChatsSnapshot.data();
 
           const chatIndex = userChatsData?.chats?.findIndex((c) => {
-            return c.chatId === chatId;
+            return c.chatId === (chatIdParam || chatId);
           });
 
           userChatsData.chats[chatIndex].lastMessage = text;
           userChatsData.chats[chatIndex].isSeen =
-            chatId === (currentUser.id || localStorageId) ? true : false;
+            (chatIdParam || chatId) === currentUser.id ? true : false;
           userChatsData.chats[chatIndex].updatedAt = Date.now();
 
           await updateDoc(userChatsRef, {
@@ -105,13 +103,13 @@ const Chat = () => {
   };
 
   const handleBlock = async () => {
-    if (!user || !recieverId) return;
-    const userDocRef = doc(db, "users", currentUser?.id || localStorageId);
+    if (!user) return;
+    const userDocRef = doc(db, "users", currentUser?.id);
     try {
       await updateDoc(userDocRef, {
         blocked: isReceiverBlocked
-          ? arrayRemove(user.id || recieverId)
-          : arrayUnion(user.id || recieverId),
+          ? arrayRemove(user.id)
+          : arrayUnion(user.id),
       });
       toggleBlock();
     } catch (error) {
@@ -142,6 +140,8 @@ const Chat = () => {
       toast.warning("try again using image file");
     }
   };
+
+  // if (isLoading) return <>Loading...</>;
 
   return (
     <div className="h-screen overflow-hidden flex justify-center">
@@ -181,21 +181,7 @@ const Chat = () => {
           style={{ backgroundColor: "#DAD3CC" }}
         >
           <div className="py-2 px-3">
-            <div className="flex justify-center mb-4">
-              <div
-                className="rounded py-2 px-4"
-                style={{ backgroundColor: "#FCF4CB" }}
-              >
-                <p className="text-xs">
-                  Messages to this chat and calls are now secured with
-                  end-to-end encryption. Tap for more info.
-                </p>
-              </div>
-            </div>
             {chat?.messages?.map((message) => {
-              if (message?.senderId !== (currentUser?.id || localStorageId)) {
-                localStorage.setItem("recieverId", message.senderId);
-              }
               return (
                 <Message
                   key={message?.createdAt}
@@ -203,14 +189,13 @@ const Chat = () => {
                     img: message?.img,
                     text: message?.text,
                     time: message?.createdAt.toDate(),
-                    mine:
-                      message?.senderId === (currentUser?.id || localStorageId),
+                    mine: message?.senderId === currentUser?.id,
                   }}
                 />
               );
             })}
+            <div ref={endRef}></div>
           </div>
-          <div ref={endRef}></div>
         </div>
         {/* <!-- Input --> */}
         <div className="bg-grey-lighter px-4 py-4 flex items-center">

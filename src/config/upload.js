@@ -7,15 +7,17 @@ const upload = async (file) => {
   const storageRef = ref(storage, `images/${date + file.name}`);
   const uploadTask = uploadBytesResumable(storageRef, file);
 
-  return new Promise((resolve,reject) => {
+  return new Promise((resolve, reject) => {
     uploadTask.on(
       "state_changed",
       (snapshot) => {
-        const progress =
-          (snapshot.bytesTransferred / snapshot.totalBytes) * 100;
+        const progress = Math.abs(
+          (snapshot.bytesTransferred / snapshot.totalBytes) * 100
+        );
         toast.success("Upload is " + progress + "% done");
       },
       (error) => {
+        toast.error(error?.message);
         reject("Something went wrong!" + error.code);
       },
       () => {
